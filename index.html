@@ -27,6 +27,43 @@
   </header>
   
 
+  <!-- hero section -->
+  <section class="hero" id="home">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <h1>Premium Fashion</h1>
+      <p>Discover timeless pieces that define your unique style and elevate your wardrobe</p>
+      <a href="#products" class="cta-btn">Shop Collection</a>
+    </div>
+  </section>
+
+
+  <!-- products section -->
+  <section class="products" id="products">
+    <div class="section-title">
+      <h2>Featured Collection</h2>
+      <p>Curated pieces for the modern wardrobe</p>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterProducts('all')">All Items</button>
+      <button class="filter-btn" onclick="filterProducts('men')">Men's</button>
+      <button class="filter-btn" onclick="filterProducts('women')">Women's</button>
+      <button class="filter-btn" onclick="filterProducts('accessories')">Accessories</button>
+    </div>
+
+    <div class="products-grid" id="productGrid">
+      <!-- loaded through js -->
+    </div>
+  </section>
+
+  
+  <!-- cart modal -->
+
+
+
+
+
 
 
   <script src="script.js"></script>
