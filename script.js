@@ -1,4 +1,4 @@
-//product data
+// Product data
 const products = [
   {
     id: 1,
@@ -38,7 +38,7 @@ const products = [
     category: "women",
     price: 79.99,
     image:
-      "https://images.unsplash.com/photo-1564257577154-75bdec5c3700?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+      "https://images.unsplash.com/photo-1551028719-00167b16eac5?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
   },
   {
     id: 6,
@@ -98,7 +98,7 @@ const products = [
   },
 ];
 
-// cart functionality
+// Cart functionality
 let cart = [];
 let currentPaymentMethod = "credit";
 
@@ -107,33 +107,166 @@ function renderProducts(productsToRender = products) {
   grid.innerHTML = productsToRender
     .map(
       (product) => `
-    <div class="product-card" data-category=${product.category}>
-      <img src="${product.image}" alt="${product.title} class="product-image">
-      <div class="product-info">
-        <h3 class="product-title">${product.title}</h3>
-        <p class="product-category">
-          ${product.category.charAt(0).toUpperCase() + product.category.slice(1)}
-        </p>
-        <div class="product-price">$${product.price}</div>
-        <button class="add-to-cart" onclick="addToCart(${product.id})">Add To Cart</button>
-      </div> 
-    </div>  
-  `,
+                <div class="product-card" data-category="${product.category}">
+                    <img src="${product.image}" alt="${product.title}" class="product-image">
+                    <div class="product-info">
+                        <h3 class="product-title">${product.title}</h3>
+                        <p class="product-category">${product.category.charAt(0).toUpperCase() + product.category.slice(1)}</p>
+                        <div class="product-price">$${product.price}</div>
+                        <button class="add-to-cart" onclick="addToCart(${product.id})">Add to Cart</button>
+                    </div>
+                </div>
+            `,
     )
     .join("");
 }
 
-function filterProducts(category, event) {
-  //update active filter button
+function filterProducts(category) {
+  // Update active filter button
   document
     .querySelectorAll(".filter-btn")
     .forEach((btn) => btn.classList.remove("active"));
   event.target.classList.add("active");
 
-  // filter products
+  // Filter products
   const filteredProducts =
     category === "all"
       ? products
       : products.filter((p) => p.category === category);
   renderProducts(filteredProducts);
 }
+
+function addToCart(productId) {
+  const product = products.find((p) => p.id === productId);
+  const existingItem = cart.find((item) => item.id === productId);
+
+  if (existingItem) {
+    existingItem.quantity += 1;
+  } else {
+    cart.push({ ...product, quantity: 1 });
+  }
+
+  updateCartCount();
+  renderCart();
+
+  // Show success feedback
+  const button = event.target;
+  const originalText = button.textContent;
+  button.textContent = "✓ Added!";
+  button.style.background = "#34C759";
+  setTimeout(() => {
+    button.textContent = originalText;
+    button.style.background = "#000";
+  }, 1000);
+}
+
+function removeFromCart(productId){
+  cart = cart.filter(item => item.id != productId);
+  updateCartCount();
+  renderCart();
+}
+
+function updateQuantity(productId, change){
+  const item = cart.find(item => item.id === productId);
+  if(item){
+    item.quantity += change;
+    if(item.quantity <= 0){
+      removeFromCart(productId);
+    }else{
+      updateCartCount();
+      renderCart();
+    }
+  }
+}
+
+function updateCartCount(){
+  const count = cart.reduce((total, item) => total + item.quantity, 0);
+  document.getElementById('cartCount').textContent = count;
+}
+
+function renderCart(){
+  const cartItems = document.getElementById('cartItems');
+  const cartTotal = document.getElementById('cartTotal');
+
+  if(cart.length === 0){
+    cartItems.innerHTML = `
+      <div class="empty-cart">
+        <div class="empty-cart-icon">🛒</div>
+        <p>Your cart is empty</p>
+      </div>
+    `;
+    cartTotal.style.display = 'none';
+    return;
+  }
+
+  cartItems.innerHTML = cart.map(item => `
+    <div class="cart-item">
+    <img src="${item.image}" alt="${item.title}" class="cart-item-image">
+    <div class="cart-item-info">
+      <div class="cart-item-title">${item.title}</div>
+      <div class="cart-item-price">${(item.price * item.quantity).toFixed(2)}</div>
+      <div class="quantity-controls">
+        <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
+        <span class="quantity">${item.quantity}</span>
+        <button class="quantity-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
+          </div>
+        </div>
+      </div>
+  `).join('');
+
+  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  document.getElementById('totalPrice').textContent = `Total: ${total.toFixed(2)}`;
+  document.getElementById('checkoutTotal').textContent = `Total: ${total.toFixed(2)}`;
+  cartTotal.style.display = 'block';
+}
+
+function toggleCart(){
+  const modal = document.getElementById('cartModal');
+  if(modal.style.display === 'block'){
+    modal.classList.remove('active');
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 400);
+  }else{
+    modal.style.display = 'block';
+    setTimeout(() => modal.classList.add('active'), 10);
+  }
+
+  // hide checkout form whem opening cart
+  hideCheckout();
+}
+
+function showCheckout(){
+  if(cart.length === 0) return;
+
+  document.getElementById('cartItems').style.display = 'none';
+  document.getElementById('cartTotal').style.display = 'none';
+  document.getElementById('checkoutForm').classList.add('active');
+}
+
+function hideCheckout(){
+  document.getElementById('cartItems').style.display = 'block';
+  document.getElementById('cartTotal').style.display = 'block';
+  document.getElementById('checkoutForm').classList.add('active');
+}
+
+function selectPayment(method){
+  currentPaymentMethod = method;
+  document.querySelectorAll('.payment-method').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const creditCartForm = document.getElementById('creditCartForm');
+  if(method === 'credit'){
+    creditCartForm.style.display = 'block';
+  }else{
+    creditCartForm.style.display = 'none';
+  }
+}
+
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  renderProducts();
+  updateCartCount();
+});
